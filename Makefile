@@ -1,10 +1,13 @@
-.PHONY: proto build build-server build-client build-linux build-linux-server build-linux-client run-server run-client tidy clean
+.PHONY: proto tidy setup build build-server build-client build-linux build-linux-server build-linux-client run-server run-client start-server start-server-bg stop-server clean
 
 BIN_DIR := bin
 SERVER_BIN := grpc-server
 CLIENT_BIN := grpc-client
 LINUX_GOOS := linux
 LINUX_GOARCH := amd64
+ADDR := :50051
+SERVER_LOG := grpc-server.log
+SERVER_PID := grpc-server.pid
 
 proto:
 	protoc --go_out=. --go_opt=paths=source_relative \
@@ -12,6 +15,8 @@ proto:
 		proto/helloworld.proto
 	mkdir -p gen/helloworld/v1
 	mv proto/helloworld.pb.go proto/helloworld_grpc.pb.go gen/helloworld/v1/
+
+setup: tidy build
 
 build: build-server build-client
 
@@ -39,8 +44,24 @@ run-server:
 run-client:
 	go run ./cmd/client
 
+start-server: build-server
+	./$(BIN_DIR)/$(SERVER_BIN) -addr $(ADDR)
+
+start-server-bg: build-server
+	nohup ./$(BIN_DIR)/$(SERVER_BIN) -addr $(ADDR) > $(SERVER_LOG) 2>&1 & echo $$! > $(SERVER_PID)
+	@echo "server started, pid=$$(cat $(SERVER_PID)), log=$(SERVER_LOG), addr=$(ADDR)"
+
+stop-server:
+	@if [ -f $(SERVER_PID) ]; then \
+		kill $$(cat $(SERVER_PID)); \
+		rm -f $(SERVER_PID); \
+		echo "server stopped"; \
+	else \
+		echo "$(SERVER_PID) not found"; \
+	fi
+
 tidy:
 	go mod tidy
 
 clean:
-	rm -rf $(BIN_DIR)
+	rm -rf $(BIN_DIR) $(SERVER_PID) $(SERVER_LOG)

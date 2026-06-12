@@ -63,11 +63,12 @@ make proto
 ```bash
 git clone <your-repo-url>
 cd automation_demo
-go mod tidy
-make build
+make setup
 ```
 
-如果只想编译服务端：
+`make setup` 会完成依赖整理和服务端/客户端编译。
+
+如果只想完成服务端运行前准备：
 
 ```bash
 make build-server
@@ -76,7 +77,7 @@ make build-server
 启动服务端：
 
 ```bash
-./bin/grpc-server -addr :50051
+make start-server
 ```
 
 服务启动后会监听 TCP `50051` 端口。另开一个终端测试：
@@ -94,19 +95,32 @@ response: Hello, Yuchen!
 后台启动可以用：
 
 ```bash
-nohup ./bin/grpc-server -addr :50051 > grpc-server.log 2>&1 &
+make start-server-bg
 ```
 
 查看进程：
 
 ```bash
-ps aux | grep grpc-server
+cat grpc-server.pid
 ```
 
 查看日志：
 
 ```bash
 tail -f grpc-server.log
+```
+
+停止后台服务：
+
+```bash
+make stop-server
+```
+
+如果要换监听端口：
+
+```bash
+make start-server ADDR=:50052
+make start-server-bg ADDR=:50052
 ```
 
 如果服务器有防火墙或云安全组，需要开放 TCP `50051` 端口。
