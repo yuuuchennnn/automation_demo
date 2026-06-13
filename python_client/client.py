@@ -8,7 +8,7 @@ from reflection_client import say_hello_with_reflection
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Call the Go gRPC GreeterService.")
-    parser.add_argument("--addr", default="127.0.0.1:50051", help="gRPC server address")
+    parser.add_argument("--addr", default="192.168.31.46:50051", help="gRPC server address")
     parser.add_argument("--name", default="Yuchen", help="name to greet")
     parser.add_argument("--timeout", type=float, default=3.0, help="request timeout in seconds")
     args = parser.parse_args()
