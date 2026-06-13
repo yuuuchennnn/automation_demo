@@ -1,6 +1,6 @@
 import argparse
 
-from greeter_client import say_hello
+from reflection_client import say_hello_with_reflection
 
 
 def main() -> None:
@@ -9,7 +9,7 @@ def main() -> None:
     parser.add_argument("--name", default="Yuchen", help="name to greet")
     args = parser.parse_args()
 
-    print(say_hello(args.addr, args.name))
+    print(say_hello_with_reflection(args.addr, args.name))
 
 
 if __name__ == "__main__":

@@ -28,7 +28,6 @@ go-stop:
 python-setup:
 	$(PYTHON) -m venv $(VENV_DIR)
 	$(VENV_PIP) install -r $(PYTHON_CLIENT_DIR)/requirements.txt
-	$(MAKE) python-proto
 
 python-proto:
 	$(VENV_PYTHON) -m grpc_tools.protoc \

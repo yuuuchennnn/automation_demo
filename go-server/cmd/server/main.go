@@ -10,6 +10,7 @@ import (
 	helloworldv1 "automation_demo/gen/helloworld/v1"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 type greeterServer struct {
@@ -38,6 +39,7 @@ func main() {
 
 	server := grpc.NewServer()
 	helloworldv1.RegisterGreeterServiceServer(server, &greeterServer{})
+	reflection.Register(server)
 
 	log.Printf("gRPC server listening on %s", *addr)
 	if err := server.Serve(listener); err != nil {

@@ -5,3 +5,4 @@ __pycache__/
 *.pyc
 grpc-server.log
 grpc-server.pid
+.idea/
