@@ -1,67 +1,48 @@
-.PHONY: proto tidy setup build build-server build-client build-linux build-linux-server build-linux-client run-server run-client start-server start-server-bg stop-server clean
+.PHONY: go-setup go-build go-start go-start-bg go-stop python-setup python-proto python-test python-client clean
 
-BIN_DIR := bin
-SERVER_BIN := grpc-server
-CLIENT_BIN := grpc-client
-LINUX_GOOS := linux
-LINUX_GOARCH := amd64
-ADDR := :50051
-SERVER_LOG := grpc-server.log
-SERVER_PID := grpc-server.pid
+GO_SERVER_DIR := go-server
+PYTHON_CLIENT_DIR := python-client
+SERVER_ADDR := :50051
+PYTHON_ADDR := 127.0.0.1:50051
+NAME := Yuchen
+PYTHON := python3
+VENV_DIR := $(PYTHON_CLIENT_DIR)/.venv
+VENV_PYTHON := $(VENV_DIR)/bin/python
+VENV_PIP := $(VENV_DIR)/bin/pip
 
-proto:
-	protoc --go_out=. --go_opt=paths=source_relative \
-		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
-		proto/helloworld.proto
-	mkdir -p gen/helloworld/v1
-	mv proto/helloworld.pb.go proto/helloworld_grpc.pb.go gen/helloworld/v1/
+go-setup:
+	$(MAKE) -C $(GO_SERVER_DIR) setup
 
-setup: tidy build
+go-build:
+	$(MAKE) -C $(GO_SERVER_DIR) build-server
 
-build: build-server build-client
+go-start:
+	$(MAKE) -C $(GO_SERVER_DIR) start-server ADDR=$(SERVER_ADDR)
 
-build-server:
-	mkdir -p $(BIN_DIR)
-	go build -o $(BIN_DIR)/$(SERVER_BIN) ./cmd/server
+go-start-bg:
+	$(MAKE) -C $(GO_SERVER_DIR) start-server-bg ADDR=$(SERVER_ADDR)
 
-build-client:
-	mkdir -p $(BIN_DIR)
-	go build -o $(BIN_DIR)/$(CLIENT_BIN) ./cmd/client
+go-stop:
+	$(MAKE) -C $(GO_SERVER_DIR) stop-server
 
-build-linux: build-linux-server build-linux-client
+python-setup:
+	$(PYTHON) -m venv $(VENV_DIR)
+	$(VENV_PIP) install -r $(PYTHON_CLIENT_DIR)/requirements.txt
+	$(MAKE) python-proto
 
-build-linux-server:
-	mkdir -p $(BIN_DIR)
-	GOOS=$(LINUX_GOOS) GOARCH=$(LINUX_GOARCH) go build -o $(BIN_DIR)/$(SERVER_BIN)-$(LINUX_GOOS)-$(LINUX_GOARCH) ./cmd/server
+python-proto:
+	$(VENV_PYTHON) -m grpc_tools.protoc \
+		-I$(GO_SERVER_DIR) \
+		--python_out=$(PYTHON_CLIENT_DIR) \
+		--grpc_python_out=$(PYTHON_CLIENT_DIR) \
+		$(GO_SERVER_DIR)/proto/helloworld.proto
 
-build-linux-client:
-	mkdir -p $(BIN_DIR)
-	GOOS=$(LINUX_GOOS) GOARCH=$(LINUX_GOARCH) go build -o $(BIN_DIR)/$(CLIENT_BIN)-$(LINUX_GOOS)-$(LINUX_GOARCH) ./cmd/client
+python-test:
+	GRPC_ADDR=$(PYTHON_ADDR) $(VENV_PYTHON) -m pytest $(PYTHON_CLIENT_DIR)
 
-run-server:
-	go run ./cmd/server
-
-run-client:
-	go run ./cmd/client
-
-start-server: build-server
-	./$(BIN_DIR)/$(SERVER_BIN) -addr $(ADDR)
-
-start-server-bg: build-server
-	nohup ./$(BIN_DIR)/$(SERVER_BIN) -addr $(ADDR) > $(SERVER_LOG) 2>&1 & echo $$! > $(SERVER_PID)
-	@echo "server started, pid=$$(cat $(SERVER_PID)), log=$(SERVER_LOG), addr=$(ADDR)"
-
-stop-server:
-	@if [ -f $(SERVER_PID) ]; then \
-		kill $$(cat $(SERVER_PID)); \
-		rm -f $(SERVER_PID); \
-		echo "server stopped"; \
-	else \
-		echo "$(SERVER_PID) not found"; \
-	fi
-
-tidy:
-	go mod tidy
+python-client:
+	$(VENV_PYTHON) $(PYTHON_CLIENT_DIR)/client.py --addr $(PYTHON_ADDR) --name $(NAME)
 
 clean:
-	rm -rf $(BIN_DIR) $(SERVER_PID) $(SERVER_LOG)
+	$(MAKE) -C $(GO_SERVER_DIR) clean
+	rm -rf $(VENV_DIR)

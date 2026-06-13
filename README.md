@@ -1,147 +1,102 @@
-# Go gRPC Demo
+# Go gRPC Server + Python Pytest Client
 
-一个最小但完整的 Go gRPC 示例，包含：
+这个 demo 把 Go gRPC 服务端和 Python gRPC 测试客户端分开管理：
 
-- `proto/helloworld.proto`：gRPC 服务定义
-- `cmd/server`：服务端
-- `cmd/client`：客户端
-- `gen/helloworld/v1`：由 `protoc` 生成的 Go 代码
+- `go-server/`：Go gRPC server、Go client、proto、生成的 Go 代码
+- `python-client/`：Python gRPC client、pytest 测试、生成的 Python 代码
+- `Makefile`：根目录统一入口，负责调用两边的 setup/build/test
 
-## 本地运行
+## Go Server
 
-安装依赖：
-
-```bash
-go mod tidy
-```
-
-启动服务端：
+Linux 或 macOS 上准备 Go 服务端：
 
 ```bash
-go run ./cmd/server -addr :50051
+make go-setup
 ```
 
-另开一个终端调用客户端：
+前台启动服务：
 
 ```bash
-go run ./cmd/client -addr 127.0.0.1:50051 -name Yuchen
+make go-start
 ```
 
-预期输出类似：
-
-```text
-response: Hello, Yuchen!
-```
-
-## 生成 proto 代码
-
-如果修改了 `proto/helloworld.proto`，先安装生成插件：
+后台启动服务：
 
 ```bash
-go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
-go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
-```
-
-然后重新生成：
-
-```bash
-make proto
-```
-
-## Linux 构建和部署
-
-可以直接 clone 到 Linux 后编译。Linux 机器需要提前安装：
-
-- Go 1.22 或更新版本
-- make
-- git
-
-生成后的 gRPC 代码已经在 `gen/` 目录里，所以只要不修改 `proto/helloworld.proto`，Linux 上不需要安装 `protoc`。
-
-在 Linux 机器上：
-
-```bash
-git clone <your-repo-url>
-cd automation_demo
-make setup
-```
-
-`make setup` 会完成依赖整理和服务端/客户端编译。
-
-如果只想完成服务端运行前准备：
-
-```bash
-make build-server
-```
-
-启动服务端：
-
-```bash
-make start-server
-```
-
-服务启动后会监听 TCP `50051` 端口。另开一个终端测试：
-
-```bash
-./bin/grpc-client -addr 127.0.0.1:50051 -name Yuchen
-```
-
-预期输出类似：
-
-```text
-response: Hello, Yuchen!
-```
-
-后台启动可以用：
-
-```bash
-make start-server-bg
-```
-
-查看进程：
-
-```bash
-cat grpc-server.pid
-```
-
-查看日志：
-
-```bash
-tail -f grpc-server.log
+make go-start-bg
 ```
 
 停止后台服务：
 
 ```bash
-make stop-server
+make go-stop
 ```
 
-如果要换监听端口：
+默认监听 `:50051`。如果要换端口：
 
 ```bash
-make start-server ADDR=:50052
-make start-server-bg ADDR=:50052
+make go-start SERVER_ADDR=:50052
+make go-start-bg SERVER_ADDR=:50052
 ```
 
-如果服务器有防火墙或云安全组，需要开放 TCP `50051` 端口。
+## Python Client
 
-## 交叉编译 Linux 二进制
-
-如果想在 macOS 上提前编译 Linux amd64 二进制：
+macOS 上准备 Python 客户端：
 
 ```bash
-make build-linux
+make python-setup
 ```
 
-只编译 Linux 服务端：
+这个命令会：
+
+- 创建 `python-client/.venv`
+- 安装 `grpcio`、`grpcio-tools`、`pytest`
+- 从 `go-server/proto/helloworld.proto` 生成 Python gRPC 代码
+
+## 用 pytest 请求 Go gRPC
+
+如果 Go server 在同一台机器：
 
 ```bash
-make build-linux-server
+make python-test
 ```
 
-上传 `grpc-server-linux-amd64` 到 Linux 后运行：
+如果 Go server 在 Linux 服务器上，从 macOS 请求：
 
 ```bash
-chmod +x grpc-server-linux-amd64
-./grpc-server-linux-amd64 -addr :50051
+make python-test PYTHON_ADDR=<linux-server-ip>:50051
+```
+
+也可以直接运行 Python client：
+
+```bash
+make python-client PYTHON_ADDR=<linux-server-ip>:50051 NAME=Yuchen
+```
+
+预期输出：
+
+```text
+Hello, Yuchen!
+```
+
+## Linux 部署提示
+
+在 Linux 上 clone 后：
+
+```bash
+git clone <your-repo-url>
+cd automation_demo
+make go-setup
+make go-start-bg
+```
+
+如果 macOS 要访问 Linux 上的服务，需要确认 Linux 防火墙或云安全组开放 TCP `50051`。
+
+## 修改 proto 后重新生成
+
+修改 `go-server/proto/helloworld.proto` 后，重新生成两端代码：
+
+```bash
+make -C go-server proto
+make python-proto
 ```
