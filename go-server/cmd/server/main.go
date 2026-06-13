@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"time"
 
 	helloworldv1 "automation_demo/gen/helloworld/v1"
 
@@ -16,6 +17,18 @@ import (
 
 type greeterServer struct {
 	helloworldv1.UnimplementedGreeterServiceServer
+}
+
+func logUnaryRPC(
+	ctx context.Context,
+	req any,
+	info *grpc.UnaryServerInfo,
+	handler grpc.UnaryHandler,
+) (any, error) {
+	start := time.Now()
+	resp, err := handler(ctx, req)
+	glog.Infof("grpc request handled: method=%s duration=%s error=%v", info.FullMethod, time.Since(start), err)
+	return resp, err
 }
 
 func (s *greeterServer) SayHello(ctx context.Context, req *helloworldv1.SayHelloRequest) (*helloworldv1.SayHelloResponse, error) {
@@ -34,14 +47,16 @@ func (s *greeterServer) SayHello(ctx context.Context, req *helloworldv1.SayHello
 
 func main() {
 	addr := flag.String("addr", ":50051", "server listen address")
+	_ = flag.Set("logtostderr", "true")
 	flag.Parse()
+	defer glog.Flush()
 
 	listener, err := net.Listen("tcp", *addr)
 	if err != nil {
 		log.Fatalf("listen on %s: %v", *addr, err)
 	}
 
-	server := grpc.NewServer()
+	server := grpc.NewServer(grpc.UnaryInterceptor(logUnaryRPC))
 	helloworldv1.RegisterGreeterServiceServer(server, &greeterServer{})
 	reflection.Register(server)
 
