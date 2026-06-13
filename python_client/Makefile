@@ -1,9 +1,8 @@
-.PHONY: all setup test run clean
+.PHONY: all setup reinstall test run clean
 
 PYTHON := python3
 VENV_DIR := .venv
 VENV_PYTHON := $(VENV_DIR)/bin/python
-VENV_PIP := $(VENV_DIR)/bin/pip
 ADDR := 127.0.0.1:50051
 NAME := Yuchen
 
@@ -11,7 +10,10 @@ all: setup
 
 setup:
 	$(PYTHON) -m venv $(VENV_DIR)
-	$(VENV_PIP) install -r requirements.txt
+	$(VENV_PYTHON) -m ensurepip --upgrade
+	$(VENV_PYTHON) -m pip install -r requirements.txt
+
+reinstall: clean setup
 
 test:
 	GRPC_ADDR=$(ADDR) $(VENV_PYTHON) -m pytest .
