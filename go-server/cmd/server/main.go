@@ -9,6 +9,7 @@ import (
 
 	helloworldv1 "automation_demo/gen/helloworld/v1"
 
+	"github.com/golang/glog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -23,8 +24,11 @@ func (s *greeterServer) SayHello(ctx context.Context, req *helloworldv1.SayHello
 		name = "gRPC"
 	}
 
+	message := fmt.Sprintf("Hello, %s!", name)
+	glog.Infof("SayHello request received: name=%q response=%q", name, message)
+
 	return &helloworldv1.SayHelloResponse{
-		Message: fmt.Sprintf("Hello, %s!", name),
+		Message: message,
 	}, nil
 }
 
