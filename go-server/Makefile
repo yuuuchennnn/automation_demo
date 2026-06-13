@@ -1,4 +1,4 @@
-.PHONY: check-go proto tidy setup build build-server build-client build-linux build-linux-server build-linux-client run-server run-client start-server start-server-bg stop-server clean
+.PHONY: all check-go proto tidy setup build build-server build-client build-linux build-linux-server build-linux-client run-server run-client start-server start-server-bg stop-server clean
 
 BIN_DIR := bin
 SERVER_BIN := grpc-server
@@ -8,6 +8,8 @@ LINUX_GOARCH := amd64
 ADDR := :50051
 SERVER_LOG := grpc-server.log
 SERVER_PID := grpc-server.pid
+
+all: setup
 
 check-go:
 	@command -v go >/dev/null 2>&1 || { \
