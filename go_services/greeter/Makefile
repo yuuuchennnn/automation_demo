@@ -8,6 +8,8 @@ LINUX_GOARCH := amd64
 ADDR := :50051
 SERVER_LOG := grpc-server.log
 SERVER_PID := grpc-server.pid
+PROTO_ROOT := ../../proto
+PROTO_FILE := helloworld/v1/helloworld.proto
 
 all: setup
 
@@ -19,11 +21,13 @@ check-go:
 	}
 
 proto: check-go
-	protoc --go_out=. --go_opt=paths=source_relative \
+	protoc -I$(PROTO_ROOT) \
+		--go_out=. --go_opt=paths=source_relative \
 		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
-		proto/helloworld.proto
+		$(PROTO_FILE)
 	mkdir -p gen/helloworld/v1
-	mv proto/helloworld.pb.go proto/helloworld_grpc.pb.go gen/helloworld/v1/
+	mv helloworld/v1/helloworld.pb.go helloworld/v1/helloworld_grpc.pb.go gen/helloworld/v1/
+	rm -rf helloworld
 
 setup: check-go tidy build
 
