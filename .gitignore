@@ -2,6 +2,7 @@ bin/
 .cache/
 .venv/
 __pycache__/
+.pytest_cache/
 *.pyc
 grpc-server.log
 grpc-server.pid

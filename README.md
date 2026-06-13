@@ -1,38 +1,36 @@
-# Go gRPC Services + Python Pytest Client
+# Go gRPC Demo
 
-这个 demo 按“公共 proto + 多服务目录 + 独立 Python 测试客户端”的方式组织，后续可以继续扩展多个 Go gRPC 服务。
+一个尽量简洁的 gRPC demo：
 
-## 目录结构
+- Go 负责启动 gRPC server
+- Python 通过 gRPC reflection 调用 server
+- `proto/` 放公共接口定义
+
+## 目录
 
 ```text
 automation_demo/
   proto/
     helloworld/v1/helloworld.proto
 
-  services/
+  go_services/
     greeter/
       Makefile
       go.mod
-      cmd/
-        server/main.go
-        client/main.go
+      cmd/server/main.go
       gen/
 
-  python-client/
+  python_client/
     Makefile
     client.py
     reflection_client.py
     tests/test_greeter.py
 ```
 
-- `proto/`：公共接口契约，多个服务和多语言客户端都可以复用
-- `services/greeter/`：Greeter Go gRPC 服务，独立构建、启动、部署
-- `python-client/`：Python reflection client 和 pytest 测试
-
-## 启动 Go 服务
+## 启动 Go Server
 
 ```bash
-cd services/greeter
+cd go_services/greeter
 make
 make start-server
 ```
@@ -41,6 +39,7 @@ make start-server
 
 ```bash
 make start-server-bg
+tail -f grpc-server.log
 ```
 
 停止后台服务：
@@ -49,111 +48,66 @@ make start-server-bg
 make stop-server
 ```
 
-默认监听 `:50051`。如果要换端口：
+默认监听 `:50051`。换端口：
 
 ```bash
 make start-server ADDR=:50052
-make start-server-bg ADDR=:50052
 ```
 
-后台日志：
+## 运行 Python Client
+
+第一次运行先安装 Python 依赖：
 
 ```bash
-tail -f grpc-server.log
-```
-
-## Python pytest 请求 Go gRPC
-
-Python 侧通过 gRPC Server Reflection 动态获取服务描述，不需要生成 Python proto 文件，也不需要导入 `helloworld_pb2`。
-
-准备 Python 环境：
-
-```bash
-cd python-client
+cd python_client
 make
 ```
 
-请求本机 Go 服务：
+请求本机服务：
 
 ```bash
-make test
+make run
 ```
 
-从 macOS 请求 Linux 上的 Go 服务：
+请求 Linux 机器上的服务：
 
 ```bash
-make test ADDR=<linux-server-ip>:50051
+make run ADDR=192.168.31.46:50051 NAME=Yuchen
 ```
 
-直接运行 Python client：
+运行 pytest：
 
 ```bash
-make run ADDR=<linux-server-ip>:50051 NAME=Yuchen
+make test ADDR=192.168.31.46:50051
 ```
 
-预期输出：
+## Reflection
 
-```text
-Hello, Yuchen!
-```
-
-## gRPC Reflection
-
-Go server 启动时注册 reflection：
-
-```go
-reflection.Register(server)
-```
-
-Python client 会先请求 reflection 服务，拿到 `GreeterService`、`SayHello`、`SayHelloRequest`、`SayHelloResponse` 的 descriptor，然后动态创建 protobuf message，并调用：
+Python 侧没有生成或导入 `helloworld_pb2.py`，而是通过 gRPC reflection 从 Go server 动态读取服务描述，然后调用：
 
 ```text
 /helloworld.v1.GreeterService/SayHello
 ```
 
-## 修改 proto 后重新生成 Go 代码
+Go server 中开启 reflection 的位置：
 
-修改公共 proto：
+```go
+reflection.Register(server)
+```
+
+## 修改 Proto
+
+修改：
 
 ```text
 proto/helloworld/v1/helloworld.proto
 ```
 
-重新生成 Greeter 服务的 Go 代码：
+重新生成 Go 代码：
 
 ```bash
-cd services/greeter
+cd go_services/greeter
 make proto
 ```
 
-Python 侧使用 reflection，会从正在运行的 Go server 动态读取服务描述。
-
-## 继续添加 Go 服务
-
-后续新增服务时，建议继续放到 `services/` 下：
-
-```text
-services/
-  greeter/
-  user/
-  order/
-```
-
-每个服务维护自己的：
-
-```text
-Makefile
-go.mod
-cmd/server
-internal/
-gen/
-```
-
-公共 proto 继续放在根目录 `proto/`：
-
-```text
-proto/
-  helloworld/v1/helloworld.proto
-  user/v1/user.proto
-  order/v1/order.proto
-```
+Python 使用 reflection，不需要重新生成 Python 代码。
