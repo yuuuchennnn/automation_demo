@@ -1,5 +1,4 @@
-grpcio==1.64.0
-grpcio-reflection==1.64.0
-grpcio-tools==1.64.0
-protobuf==5.27.2
+grpcio==1.81.1
+grpcio-reflection==1.81.1
+grpcio-tools==1.81.1
 pytest==8.2.2

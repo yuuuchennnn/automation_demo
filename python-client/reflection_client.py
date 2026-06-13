@@ -9,6 +9,8 @@ METHOD_NAME = "SayHello"
 
 def say_hello_with_reflection(addr: str, name: str, timeout: float = 3.0) -> str:
     with grpc.insecure_channel(addr) as channel:
+        grpc.channel_ready_future(channel).result(timeout=timeout)
+
         reflection_db = proto_reflection_descriptor_database.ProtoReflectionDescriptorDatabase(channel)
         pool = descriptor_pool.DescriptorPool(reflection_db)
 
