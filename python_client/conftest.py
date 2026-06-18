@@ -1,4 +1,18 @@
+import logging
+
 import pytest
+from loguru import logger
+
+
+class PropagateHandler(logging.Handler):
+    def emit(self, record):
+        logging.getLogger(record.name).handle(record)
+
+
+logger.remove()
+logger.add(PropagateHandler(), format="{message}", level="DEBUG")
+logging.getLogger("urllib3").setLevel(logging.WARNING)
+
 from functions.func_hub import FuncHub
 
 def pytest_addoption(parser):

@@ -31,14 +31,14 @@ class FuncHub:
         def make(app_url: str, api_path: str, method="post", body=None, headers=None, params=None) -> dict:
             base_url = env["HTTP"][app_url]
             url = base_url + api_path
-            logger.info("\n")
+
             logger.info(f"HTTP {method} request {url} starts...")
-            logger.info(f"body headers -->\n{str(headers)}")
-            logger.info(f"body request -->\n{str(body)}")
+            logger.info(f"body headers --> {str(headers)}")
+            logger.info(f"body request --> {str(body)}")
             try:
                 response = requests.request(method=method, url=url, json=body, headers=headers, params=params)
-                logger.info(f"HTTP response -->\n{str(response)}")
-                logger.info(f"HTTP response.json -->\n{str(response.json())}")
+                logger.info(f"HTTP response --> {str(response)}")
+                logger.info(f"HTTP response.json --> {str(response.json())}")
 
                 res = {"status_code": response.status_code,
                        "json_resp": {}}
