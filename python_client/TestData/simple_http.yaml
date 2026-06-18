@@ -1,0 +1,15 @@
+- testCase:
+    testId: tc-1
+    testName: http_testcase_demo
+    testOwner: owner1
+    testDescription: Description1
+    isAutomated: Y
+  testData:
+    body:
+      startTime: '1'
+      endTime: '2'
+    header:
+      X-BAPI-SIGN:
+      X-BAPI-API-KEY:
+      X-BAPI-TIMESTAMP:
+      X-BAPI-RECV-WINDOW: "10000000"
