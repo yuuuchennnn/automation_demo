@@ -1,8 +1,9 @@
-# Go gRPC Demo
+# Go Service Demo
 
-一个尽量简洁的 gRPC demo：
+一个尽量简洁的 Go 服务 demo：
 
 - Go 负责启动 gRPC server
+- Go 负责启动 HTTP demo server
 - Python 通过 gRPC reflection 调用 server
 - `proto/` 放公共接口定义
 
@@ -19,6 +20,10 @@ automation_demo/
       go.mod
       cmd/server/main.go
       gen/
+    http_demo/
+      Makefile
+      go.mod
+      cmd/server/main.go
 
   python_client/
     Makefile
@@ -27,7 +32,7 @@ automation_demo/
     tests/test_greeter.py
 ```
 
-## 启动 Go Server
+## 启动 Go gRPC Server
 
 ```bash
 cd go_services/greeter
@@ -52,6 +57,47 @@ make stop-server
 
 ```bash
 make start-server ADDR=:50052
+```
+
+## 启动 Go HTTP Demo Server
+
+```bash
+cd go_services/http_demo
+make
+make start-server
+```
+
+后台启动：
+
+```bash
+make start-server-bg
+tail -f http-demo-server.log
+```
+
+停止后台服务：
+
+```bash
+make stop-server
+```
+
+默认监听 `:8080`。换端口：
+
+```bash
+make start-server ADDR=:8081
+```
+
+接口示例：
+
+```bash
+curl -X POST http://localhost:8080/demo \
+  -H 'Content-Type: application/json' \
+  -d '{"startTime":"1","endTime":"2"}'
+```
+
+探活：
+
+```bash
+curl http://localhost:8080/healthz
 ```
 
 ## 运行 Python Client
