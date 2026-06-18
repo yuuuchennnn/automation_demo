@@ -45,6 +45,8 @@ class FuncHub:
                 if response.ok:
                     res["json_resp"] = response.json()
                     return res
+                else:
+                    return {"error_msg": f"HTTP request failed with status code {response.status_code}"}
             except requests.exceptions.HTTPError as err:
                 logger.error(err.__str__())
                 return {"error_msg": err.__str__()}
