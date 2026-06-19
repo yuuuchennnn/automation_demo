@@ -7,4 +7,5 @@ class TestSimpleHttpAtom:
     @pytest.mark.parametrize("testdata", yamlDataProvider("TestData/simple_http.yaml"))
     def test_http_request(self, toolkits, testdata):
         demo_service = HttpDemoService(toolkits, testdata)
-        demo_service.call_demo_api_post()
+        res = demo_service.call_demo_api_post()
+        assert res.get('error_msg',0) == 0

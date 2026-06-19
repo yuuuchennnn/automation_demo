@@ -39,19 +39,20 @@ def make_http_call(env):
 @pytest.fixture(scope='session')
 def make_grpc_call(request, env):
     connections = {}
-    invoke_grpc = FuncHub.make_grpc_call(env, connections)
+    invoke = FuncHub.make_grpc_call(env, connections)
 
     def cleanup():
         while connections:
             connections.popitem()[1].close()
 
     request.addfinalizer(cleanup)
-    return invoke_grpc
+    return invoke
 
 @pytest.fixture(scope='session')
-def toolkits(env, make_http_call):
+def toolkits(env, make_http_call, make_grpc_call):
     tools = {'env': env,
-             'http': make_http_call
+             'http': make_http_call,
+             'grpc': make_grpc_call
              }
     return tools
 

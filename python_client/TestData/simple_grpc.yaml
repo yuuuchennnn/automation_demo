@@ -1,0 +1,8 @@
+- testCase:
+    testId: tc-2
+    testName: grpc_testcase_demo
+    testOwner: owner2
+    testDescription: Description2
+    isAutomated: Y
+  testData:
+    name: "yaml_yuchen"
