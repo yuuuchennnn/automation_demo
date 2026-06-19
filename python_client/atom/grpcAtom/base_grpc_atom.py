@@ -5,11 +5,14 @@ class BaseGrpcAtom:
     @classmethod
     def grpc(cls, toolkits, json_req):
         grpccall = toolkits['grpc']
-        packageName = '.'.join(cls.__module__.split('atom.grpcAtom.')[1].split('.')[:-1])
+        module_suffix = cls.__module__.split('atom.grpcAtom.', 1)[-1]
+        module_parts = module_suffix.split('.')
+        packageName = '.'.join(module_parts[:-1])
         serviceName = cls.__name__.split('GrpcAtom')[0]
-        serviceName = packageName + '.' + serviceName
+        if packageName:
+            serviceName = f"{packageName}.{serviceName}"
         methodName = inspect.currentframe().f_back.f_code.co_name
-        url_key = '.'.join(cls.__module__.split('.')[2:])
-        print(url_key, serviceName, methodName,json_req)
+        url_key = serviceName.split('.')[-1]
+        print(url_key, serviceName, methodName, json_req)
         response = grpccall(url_key, serviceName, methodName, json_req)
         return response
