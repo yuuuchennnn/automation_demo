@@ -48,6 +48,7 @@ def make_grpc_call(request, env):
     request.addfinalizer(cleanup)
     return invoke
 
+
 @pytest.fixture(scope='session')
 def toolkits(env, make_http_call, make_grpc_call):
     tools = {'env': env,
