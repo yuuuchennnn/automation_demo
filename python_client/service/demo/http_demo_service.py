@@ -12,3 +12,8 @@ class HttpDemoService(BaseService):
         response = HttpDemoAtom.http_post_demo_atom(self.toolkits, headers=self.testdata['header'], body=self.testdata['body'])
         logger.debug(f"response: {response}")
         return response
+
+    def call_demo_api_get(self):
+        response = HttpDemoAtom.http_get_demo_atom(self.toolkits, headers=self.testdata['header'])
+        logger.debug(f"response: {response}")
+        return response
