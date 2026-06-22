@@ -1,0 +1,16 @@
+{
+    "python-envs.pythonProjects": [
+        {
+            "path": "python_client",
+            "envManager": "ms-python.python:venv",
+            "packageManager": "ms-python.python:pip"
+        }
+    ],
+    "python.defaultInterpreterPath": "${workspaceFolder}/python_client/.venv/bin/python",
+    "python.testing.pytestEnabled": true,
+    "python.testing.pytestArgs": [
+        "TestCase"
+    ],
+    "python.testing.pytestPath": "${workspaceFolder}/python_client/.venv/bin/pytest",
+    "python.testing.cwd": "${workspaceFolder}/python_client"
+}

@@ -66,59 +66,64 @@ class FuncHub:
         return make
 
     @staticmethod
-    def make_grpc_call(env, connections):
-        def normalize_name(name):
-            return ''.join(ch for ch in name.lower() if ch.isalnum())
+    def _normalize_name(name):
+        return ''.join(ch for ch in name.lower() if ch.isalnum())
 
-        def list_reflection_services(conn):
-            stub = reflection_pb2_grpc.ServerReflectionStub(conn)
-            request = reflection_pb2.ServerReflectionRequest(list_services="")
-            response_stream = stub.ServerReflectionInfo(iter([request]))
-            for response in response_stream:
-                return [service.name for service in response.list_services_response.service]
-            return []
+    @staticmethod
+    def _list_reflection_services(conn):
+        stub = reflection_pb2_grpc.ServerReflectionStub(conn)
+        request = reflection_pb2.ServerReflectionRequest(list_services="")
+        response_stream = stub.ServerReflectionInfo(iter([request]))
+        for response in response_stream:
+            return [service.name for service in response.list_services_response.service]
+        return []
 
-        def service_matches(reflected_service_name, service_name):
-            reflected_short_name = reflected_service_name.split('.')[-1]
-            expected = normalize_name(service_name.split('.')[-1])
-            actual = normalize_name(reflected_short_name)
-            return (
-                reflected_service_name == service_name
-                or reflected_service_name.endswith(f".{service_name}")
-                or actual == expected
-                or actual == f"{expected}service"
-            )
+    @staticmethod
+    def _service_matches(reflected_service_name, service_name):
+        reflected_short_name = reflected_service_name.split('.')[-1]
+        expected = FuncHub._normalize_name(service_name.split('.')[-1])
+        actual = FuncHub._normalize_name(reflected_short_name)
+        return (
+            reflected_service_name == service_name
+            or reflected_service_name.endswith(f".{service_name}")
+            or actual == expected
+            or actual == f"{expected}service"
+        )
 
-        def load_service(conn, reflector, service_name):
-            load_error = None
-            service_name_candidates = ['.'.join(service_name.split('.')[index:])
-                                       for index in range(len(service_name.split('.')))]
-            for service_name_candidate in service_name_candidates:
-                try:
-                    reflector.load_protocols(conn, symbols=[service_name_candidate])
-                    return service_name_candidate
-                except Exception as err:
-                    load_error = err
-
-            reflected_services = list_reflection_services(conn)
-            service_matches_names = [name for name in reflected_services if service_matches(name, service_name)]
-            if len(service_matches_names) == 1:
-                reflector.load_protocols(conn, symbols=[service_matches_names[0]])
-                return service_matches_names[0]
-            if len(service_matches_names) > 1:
-                raise ValueError(f"Multiple gRPC services match {service_name}: {service_matches_names}")
-
-            raise load_error or ValueError(f"gRPC service not found: {service_name}")
-
-        def rpc_error_details(rpc_error):
-            details = rpc_error.details()
-            if not details:
-                return ''
+    @staticmethod
+    def _load_service(conn, reflector, service_name):
+        load_error = None
+        service_name_candidates = ['.'.join(service_name.split('.')[index:])
+                                   for index in range(len(service_name.split('.')))]
+        for service_name_candidate in service_name_candidates:
             try:
-                return json.loads(details)
-            except json.JSONDecodeError:
-                return details
+                reflector.load_protocols(conn, symbols=[service_name_candidate])
+                return service_name_candidate
+            except Exception as err:
+                load_error = err
 
+        reflected_services = FuncHub._list_reflection_services(conn)
+        service_matches_names = [name for name in reflected_services if FuncHub._service_matches(name, service_name)]
+        if len(service_matches_names) == 1:
+            reflector.load_protocols(conn, symbols=[service_matches_names[0]])
+            return service_matches_names[0]
+        if len(service_matches_names) > 1:
+            raise ValueError(f"Multiple gRPC services match {service_name}: {service_matches_names}")
+
+        raise load_error or ValueError(f"gRPC service not found: {service_name}")
+
+    @staticmethod
+    def _rpc_error_details(rpc_error):
+        details = rpc_error.details()
+        if not details:
+            return ''
+        try:
+            return json.loads(details)
+        except json.JSONDecodeError:
+            return details
+
+    @staticmethod
+    def make_grpc_call(env, connections):
         def invoke(app_url: str, service_name: str, methodName: str, jsonReq):
             connection_info = env['GRPC'][app_url]
             reflector = yagrc_reflector.GrpcReflectionClient()
@@ -127,7 +132,7 @@ class FuncHub:
                 conn = grpc.insecure_channel(connection_info)
                 connections[connection_info] = conn
             try:
-                service_name = load_service(conn, reflector, service_name)
+                service_name = FuncHub._load_service(conn, reflector, service_name)
                 # 获取客户端发送的数据
                 stub_class = reflector.service_stub_class(service_name)
                 method = reflector._engine.pool.FindMethodByName(service_name + '.' + methodName)
@@ -155,7 +160,7 @@ class FuncHub:
                     raise
                 else:
                     error_info = {'code': rpc_error.code(),
-                                  'msg': rpc_error_details(rpc_error)}
+                                  'msg': FuncHub._rpc_error_details(rpc_error)}
                     logger.info(error_info)
                     return error_info
 
