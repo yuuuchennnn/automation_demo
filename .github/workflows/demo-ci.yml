@@ -13,18 +13,17 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      # ① 拉取代码
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # ② 配置 Go 环境并编译两个独立的微服务
+
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: "1.22"
           cache: true
-          # 精准锁定 go.sum 的位置来管理缓存
           cache-dependency-path: go_services/grpc_demo/go.sum
+
 
       - name: Build Go Services
         run: |
@@ -36,21 +35,21 @@ jobs:
           cd ../http_demo
           go build -v -o bin/http-demo-server ./cmd/server/main.go
 
-      # ③ 配置 Python 环境（针对 python_client 子目录）
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.14"
+          python-version: "3.12"
           cache: 'pip'
-          # 让缓存机制去盯着子目录下的 requirements.txt
           cache-dependency-path: python_client/requirements.txt
+
 
       - name: Install Python dependencies
         run: |
           pip install -r python_client/requirements.txt
           pip install pytest allure-pytest
 
-      # ④ 核心：同时在后台启动两个服务，并切换到 python_client 目录跑测试
+
       - name: Start Services & Run pytest
         run: |
           # 1. 启动 gRPC 服务并后台运行
@@ -63,24 +62,21 @@ jobs:
           sleep 3
           
           # 4. 进入 python_client 目录执行 pytest
-          # 此时 pytest 会自动加载该目录下的 pytest.ini 和 conftest.py
           cd python_client
           pytest --alluredir=allure-results -v --tb=short
-        # 测试用例挂了也要继续走后面生成 Allure 报告的步骤
-        continue-on-error: true     
 
-      # ⑤ 兜底：如果测试发生失败，把两个服务的日志都打印出来
+
       - name: Print Service Logs on Failure
-        if: failure()
+        if: failure() # 只有前置步骤挂了才会触发日志打印
         run: |
           echo "=================== gRPC Server Logs ==================="
           cat grpc_server.log || true
           echo "=================== HTTP Server Logs ==================="
           cat http_server.log || true
 
-      # ⑥ 下载 Allure 命令行工具并生成报告
+
       - name: Get Allure CLI
-        if: always()
+        if: always() # 无论前置测试通过与否，都生成报告
         run: |
           wget -q https://github.com/allure-framework/allure2/releases/download/2.29.0/allure-2.29.0.tgz
           tar -xzf allure-2.29.0.tgz
@@ -89,10 +85,9 @@ jobs:
       - name: Generate Allure report
         if: always()
         run: |
-          # 注意：因为 pytest 是在 python_client 里跑的，所以 results 也在子目录下
           allure generate python_client/allure-results --clean -o allure-report
 
-      # ⑦ 上传最终的 HTML 报告制品
+          
       - name: Upload Allure report as artifact
         if: always()
         uses: actions/upload-artifact@v4
