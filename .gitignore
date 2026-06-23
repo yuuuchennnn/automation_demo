@@ -7,3 +7,4 @@ __pycache__/
 grpc-server.log
 grpc-server.pid
 .idea/
+allure-report/

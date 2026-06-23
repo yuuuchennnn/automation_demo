@@ -7,3 +7,4 @@ requests
 pyyaml
 protobuf
 yagrc
+allure-pytest
