@@ -5,6 +5,6 @@
     testDescription: Description2
     isAutomated: Y
   testData:
-    input_data:
+    request_dict:
       name: "yuchen"
     expected: "Hello, yuchen!"

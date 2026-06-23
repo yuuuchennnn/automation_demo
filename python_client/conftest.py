@@ -1,4 +1,6 @@
 import logging
+import os
+import shutil
 
 import pytest
 from loguru import logger
@@ -21,6 +23,17 @@ def pytest_addoption(parser):
                      dest="environment",
                      default="test",
                      help="environment: test or stage")
+
+
+def pytest_sessionstart(session):
+    path = "allure-results"
+    if not os.path.exists(path):
+        return
+
+    for f in os.listdir(path):
+        file_path = os.path.join(path, f)
+        if os.path.isfile(file_path):
+            os.remove(file_path)
 
 '''
     返回加载的config.ini
