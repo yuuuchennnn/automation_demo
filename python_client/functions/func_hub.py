@@ -73,7 +73,7 @@ class FuncHub:
     def _list_reflection_services(conn):
         stub = reflection_pb2_grpc.ServerReflectionStub(conn)
         request = reflection_pb2.ServerReflectionRequest(list_services="")
-        response_stream = stub.ServerReflectionInfo(iter([request]))
+        response_stream = stub.ServerReflectionInfo(iter([request])) # type: ignore[attr-defined]
         for response in response_stream:
             return [service.name for service in response.list_services_response.service]
         return []
