@@ -1,5 +1,5 @@
 import pytest
-from tools.data_reader import yamlDataProvider
+from utils.data_reader import yamlDataProvider
 from service.demo.http_demo_service import HttpDemoService
 
 class TestSimpleHttpAtom:
