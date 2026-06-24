@@ -15,7 +15,7 @@ import (
 )
 
 type greeterServer struct {
-	helloworldv1.UnimplementedGreeterServiceServer
+	helloworldv1.UnimplementedDemoServiceServer
 }
 
 func logUnaryRPC(
@@ -54,7 +54,7 @@ func main() {
 	}
 
 	server := grpc.NewServer(grpc.UnaryInterceptor(logUnaryRPC))
-	helloworldv1.RegisterGreeterServiceServer(server, &greeterServer{})
+	helloworldv1.RegisterDemoServiceServer(server, &greeterServer{})
 	reflection.Register(server)
 
 	log.Printf("gRPC server listening on %s", *addr)

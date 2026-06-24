@@ -4,7 +4,7 @@ package helloworld.v1;
 
 option go_package = "automation_demo/gen/helloworld/v1;helloworldv1";
 
-service GreeterService {
+service DemoService {
   rpc SayHello(SayHelloRequest) returns (SayHelloResponse);
 }
 

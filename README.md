@@ -1,92 +1,106 @@
-# Go Service Demo
+# Automation Demo
 
-一个尽量简洁的 Go 服务 demo：
+A full-stack API automation testing project built with **Go + Python**.
 
-- Go 负责启动 gRPC server
-- Go 负责启动 HTTP demo server
-- Python 通过 gRPC reflection 调用 server
-- `proto/` 放公共接口定义
 
-## 目录
+- **Go** — Provides a gRPC server (DemoService) and an HTTP demo server
+- **Python** — A pytest-based testing framework that uses **gRPC reflection** to dynamically invoke server APIs without precompiling proto files
+- **proto/** — Shared protobuf interface definitions
+- **GitHub Actions** — CI pipeline that builds services, runs tests, and generates Allure reports
+
+---
+
+## Directory Structure
 
 ```text
 automation_demo/
-  proto/
-    helloworld/v1/helloworld.proto
+├── proto/                          # Proto interface definitions
+│   └── helloworld/v1/helloworld.proto
+│
+├── go_services/                    # Go servers
 
-  go_services/
-    greeter/
-      Makefile
-      go.mod
-      cmd/server/main.go
-      gen/
-    http_demo/
-      Makefile
-      go.mod
-      cmd/server/main.go
-
-  python_client/
-    Makefile
-    client.py
-    reflection_client.py
-    tests/test_greeter.py
+│   ├── grpc_demo/                  #   gRPC Server (DemoService)
+│   │   ├── cmd/server/main.go
+│   │   ├── gen/                    #   Generated Go proto code
+│   │   ├── Makefile
+│   │   └── go.mod
+│   └── http_demo/                  #   HTTP Demo Server
+│       ├── cmd/server/main.go
+│       ├── Makefile
+│       └── go.mod
+│
+├── python_client/                  # Python automation test framework
+│   ├── conftest.py                 # pytest global config & fixtures
+│   ├── pytest.ini
+│   ├── Makefile
+│   ├── requirements.txt
+│   ├── configs/config.ini          # Environment config (service addresses)
+│   ├── functions/func_hub.py       # Core engine (HTTP/gRPC invocation)
+│   ├── atom/                       # Atomic operation layer
+│   ├── service/                    # Business logic layer
+│   ├── TestCase/                   # Test cases
+│   ├── TestData/                   # Test data (YAML)
+│   └── tools/                      # Utility classes
+│
+├── .github/workflows/demo-ci.yml   # CI configuration
+└── README.md
 ```
 
-## 启动 Go gRPC Server
+---
+
+## Proto Interface
+
+```protobuf
+// proto/helloworld/v1/helloworld.proto
+service DemoService {
+  rpc SayHello(SayHelloRequest) returns (SayHelloResponse);
+}
+```
+```
+
+---
+
+## Starting Go Services
+
+### gRPC Server
 
 ```bash
-cd go_services/greeter
+cd go_services/grpc_demo
+
+# Build & start (foreground)
 make
 make start-server
-```
 
-后台启动：
-
-```bash
+# Start in background
 make start-server-bg
 tail -f grpc-server.log
-```
 
-停止后台服务：
-
-```bash
+# Stop
 make stop-server
-```
 
-默认监听 `:50051`。换端口：
-
-```bash
+# Custom port
 make start-server ADDR=:50052
 ```
 
-## 启动 Go HTTP Demo Server
+### HTTP Demo Server
 
 ```bash
 cd go_services/http_demo
+
 make
 make start-server
-```
 
-后台启动：
-
-```bash
+# Start in background
 make start-server-bg
 tail -f http-demo-server.log
-```
 
-停止后台服务：
-
-```bash
+# Stop
 make stop-server
 ```
 
-默认监听 `:8080`。换端口：
+Default port: `:8080`.
 
-```bash
-make start-server ADDR=:8081
-```
-
-接口示例：
+Example request:
 
 ```bash
 curl -X POST http://localhost:8080/demo \
@@ -94,72 +108,103 @@ curl -X POST http://localhost:8080/demo \
   -d '{"startTime":"1","endTime":"2"}'
 ```
 
-探活：
+Health check:
 
 ```bash
 curl http://localhost:8080/healthz
 ```
 
-## 运行 Python Client
+---
 
-第一次运行先安装 Python 依赖：
+## Python Automation Testing
+
+Detailed documentation for the testing framework is available in [`python_client/README.md`](python_client/README.md).
+
+### Quick Start
 
 ```bash
 cd python_client
-make
+
+# Install dependencies
+make setup
+
+# Run all tests
+make test
+
+# Run a single test file
+.venv/bin/python -m pytest TestCase/Test_Demo/test_simple_grpc.py -v
 ```
 
-请求本机服务：
+### Architecture Overview
 
-```bash
-make run
+```
+TestCase          ─  Test cases (pytest + YAML data driven)
+    ↓
+Service           ─  Business logic layer (orchestrates atom operations)
+    ↓
+Atom              ─  Atomic operation layer (wraps individual APIs)
+    ↓
+FuncHub           ─  Core engine (gRPC reflection / HTTP calls)
 ```
 
-请求 Linux 机器上的服务：
+**Key Features**:
 
-```bash
-make run ADDR=192.168.31.46:50051 NAME=Yuchen
-```
+| Feature | Description |
+|---------|-------------|
+| **gRPC Reflection** | No `protoc` needed on the Python side — service definitions are dynamically resolved via reflection |
+| **Data-Driven** | Test data managed in YAML, completely separated from code |
+| **Auto Method Mapping** | The Atom layer uses `inspect` to automatically resolve the caller's method name and map it to the gRPC method |
+| **Session-Level Cache** | The reflector and service name resolution results are reused across the entire pytest session |
+| **Allure Reports** | Built-in Allure integration with CI report generation and archiving |
 
-运行 pytest：
-
-```bash
-make test ADDR=192.168.31.46:50051
-```
-
-## Reflection
-
-Python 侧没有生成或导入 `helloworld_pb2.py`，而是通过 gRPC reflection 从 Go server 动态读取服务描述，然后调用：
+### Reflection Flow
 
 ```text
-/helloworld.v1.GreeterService/SayHello
+┌──────────┐   1. ServerReflectionInfo     ┌──────────┐
+│  Python  │ ───────────────────────────▶  │  Go      │
+│  Client  │   2. Dynamically fetch proto  │  Server  │
+│  (yagrc) │ ◀───────────────────────────  │          │
+│          │   3. Make actual RPC call     │          │
+│          │ ───────────────────────────▶  │          │
+└──────────┘                               └──────────┘
 ```
 
-Go server 中开启 reflection 的位置：
+Enable reflection on the Go server:
 
 ```go
+import "google.golang.org/grpc/reflection"
+
 reflection.Register(server)
 ```
 
-## 修改 Proto
+---
 
-修改：
-
-```text
-proto/helloworld/v1/helloworld.proto
-```
-
-重新生成 Go 代码：
+## Modifying Proto
 
 ```bash
-cd go_services/greeter
+# 1. Edit the proto file
+vim proto/helloworld/v1/helloworld.proto
+
+# 2. Regenerate Go code
+cd go_services/grpc_demo
 make proto
+
+# 3. No regeneration needed for Python (uses reflection)
 ```
 
-Python 使用 reflection，不需要重新生成 Python 代码。
+---
 
+## CI (GitHub Actions)
 
-## cicd
+Configuration file: `.github/workflows/demo-ci.yml`
 
-## report
-todo 生成github pages 报告（目前仍需要 python3 -m http.server 8000 才能本地查看报告）
+CI pipeline:
+
+1. **Checkout** code
+2. **Build Go services** (gRPC + HTTP)
+3. **Install Python dependencies**
+4. **Start Go services** → **Run pytest**
+5. Print server logs on failure
+6. **Generate Allure report** → Upload as Artifact (retained for 14 days)
+
+> Allure reports can be downloaded from the Actions page's Artifacts, or deployed to GitHub Pages.

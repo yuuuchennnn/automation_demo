@@ -117,8 +117,8 @@ const file_helloworld_v1_helloworld_proto_rawDesc = "" +
 	"\x0fSayHelloRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\",\n" +
 	"\x10SayHelloResponse\x12\x18\n" +
-	"\amessage\x18\x01 \x01(\tR\amessage2]\n" +
-	"\x0eGreeterService\x12K\n" +
+	"\amessage\x18\x01 \x01(\tR\amessage2Z\n" +
+	"\vDemoService\x12K\n" +
 	"\bSayHello\x12\x1e.helloworld.v1.SayHelloRequest\x1a\x1f.helloworld.v1.SayHelloResponseB0Z.automation_demo/gen/helloworld/v1;helloworldv1b\x06proto3"
 
 var (
@@ -139,8 +139,8 @@ var file_helloworld_v1_helloworld_proto_goTypes = []any{
 	(*SayHelloResponse)(nil), // 1: helloworld.v1.SayHelloResponse
 }
 var file_helloworld_v1_helloworld_proto_depIdxs = []int32{
-	0, // 0: helloworld.v1.GreeterService.SayHello:input_type -> helloworld.v1.SayHelloRequest
-	1, // 1: helloworld.v1.GreeterService.SayHello:output_type -> helloworld.v1.SayHelloResponse
+	0, // 0: helloworld.v1.DemoService.SayHello:input_type -> helloworld.v1.SayHelloRequest
+	1, // 1: helloworld.v1.DemoService.SayHello:output_type -> helloworld.v1.SayHelloResponse
 	1, // [1:2] is the sub-list for method output_type
 	0, // [0:1] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
