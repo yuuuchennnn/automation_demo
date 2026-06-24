@@ -124,22 +124,35 @@ class FuncHub:
 
     @staticmethod
     def make_grpc_call(env, connections):
+        """
+        创建 gRPC 调用闭包。
+        在 session 级别中只创建一个 reflector 实例，
+        并对服务名解析结果 (connection_info + service_name) 做缓存，
+        避免同一服务在多次调用中反复 reflection 查询。
+        """
+        _reflector = yagrc_reflector.GrpcReflectionClient()
+        _service_cache: dict[tuple[str, str], str] = {}
+
         def invoke(app_url: str, service_name: str, methodName: str, jsonReq):
             connection_info = env['GRPC'][app_url]
-            reflector = yagrc_reflector.GrpcReflectionClient()
 
             if not (conn := connections.get(connection_info, None)):
                 conn = grpc.insecure_channel(connection_info)
                 connections[connection_info] = conn
+
             try:
-                service_name = FuncHub._load_service(conn, reflector, service_name)
+                cache_key = (connection_info, service_name)
+                if cache_key not in _service_cache:
+                    _service_cache[cache_key] = FuncHub._load_service(conn, _reflector, service_name)
+                resolved_service_name = _service_cache[cache_key]
+
                 # 获取客户端发送的数据
-                stub_class = reflector.service_stub_class(service_name)
-                method = reflector._engine.pool.FindMethodByName(service_name + '.' + methodName)
+                stub_class = _reflector.service_stub_class(resolved_service_name)
+                method = _reflector._engine.pool.FindMethodByName(resolved_service_name + '.' + methodName)
                 request_name = method.input_type.full_name
                 response_name = method.output_type.full_name
-                request_class = reflector.message_class(request_name)
-                reflector.message_class(response_name)
+                request_class = _reflector.message_class(request_name)
+                _reflector.message_class(response_name)
                 # 生成 客户端通过客户端对象
                 stub = stub_class(conn)
                 # 通过客户端找出对应的方法
