@@ -18,7 +18,6 @@ automation_demo/
 │   └── helloworld/v1/helloworld.proto
 │
 ├── go_services/                    # Go servers
-
 │   ├── grpc_demo/                  #   gRPC Server (DemoService)
 │   │   ├── cmd/server/main.go
 │   │   ├── gen/                    #   Generated Go proto code
@@ -40,7 +39,7 @@ automation_demo/
 │   ├── service/                    # Business logic layer
 │   ├── TestCase/                   # Test cases
 │   ├── TestData/                   # Test data (YAML)
-│   └── tools/                      # Utility classes
+│   └── utils/                      # Utility classes
 │
 ├── .github/workflows/demo-ci.yml   # CI configuration
 └── README.md
@@ -56,7 +55,7 @@ service DemoService {
   rpc SayHello(SayHelloRequest) returns (SayHelloResponse);
 }
 ```
-```
+
 
 ---
 
@@ -108,11 +107,6 @@ curl -X POST http://localhost:8080/demo \
   -d '{"startTime":"1","endTime":"2"}'
 ```
 
-Health check:
-
-```bash
-curl http://localhost:8080/healthz
-```
 
 ---
 
@@ -131,8 +125,6 @@ make setup
 # Run all tests
 make test
 
-# Run a single test file
-.venv/bin/python -m pytest TestCase/Test_Demo/test_simple_grpc.py -v
 ```
 
 ### Architecture Overview
@@ -177,20 +169,6 @@ import "google.golang.org/grpc/reflection"
 reflection.Register(server)
 ```
 
----
-
-## Modifying Proto
-
-```bash
-# 1. Edit the proto file
-vim proto/helloworld/v1/helloworld.proto
-
-# 2. Regenerate Go code
-cd go_services/grpc_demo
-make proto
-
-# 3. No regeneration needed for Python (uses reflection)
-```
 
 ---
 

@@ -1,7 +1,7 @@
 import pytest
 
 from atom.grpcAtom.demo_grpc_atom import DemoServiceGrpcAtom
-from tools.data_reader import yamlDataProvider
+from utils.data_reader import yamlDataProvider
 
 
 class TestSimpleGrpc:

@@ -9,3 +9,4 @@ grpc-server.pid
 .idea/
 allure-results/
 allure-report/
+.vscode/
