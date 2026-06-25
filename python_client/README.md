@@ -82,7 +82,6 @@ python_client/
 ├── atom/                      # Atomic operation layer
 │   ├── grpcAtom/
 │   │   ├── base_grpc_atom.py  # gRPC base class (auto resolves service + method)
-
 │   │   └── demo_grpc_atom.py         # DemoService definition
 │   └── httpAtom/
 │       ├── base_http_atom.py  # HTTP base class

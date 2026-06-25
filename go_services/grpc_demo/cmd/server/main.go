@@ -55,7 +55,7 @@ func main() {
 
 	server := grpc.NewServer(grpc.UnaryInterceptor(logUnaryRPC))
 	helloworldv1.RegisterDemoServiceServer(server, &greeterServer{})
-	reflection.Register(server)
+	reflection.Register(server) // Register reflection service on gRPC server.
 
 	log.Printf("gRPC server listening on %s", *addr)
 	if err := server.Serve(listener); err != nil {
