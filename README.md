@@ -3,7 +3,7 @@
 A full-stack API automation testing project built with **Go + Python**.
 
 
-- **Go** — Provides a gRPC server (DemoService) and an HTTP demo server
+- **Go** — Provides a gRPC demo server and an HTTP demo server
 - **Python** — A pytest-based testing framework that uses **gRPC reflection** to dynamically invoke server APIs without precompiling proto files
 - **proto/** — Shared protobuf interface definitions
 - **GitHub Actions** — CI pipeline that builds services, runs tests, and generates Allure reports
