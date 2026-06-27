@@ -153,28 +153,28 @@ service DemoService {
 ## 测试架构总览
 
 ```
-                    ┌──────────────────────┐
-                    │      TestCase        │  pytest data-driven
-                    ├──────────┬───────────┤
+                    ┌─────────────────────────────┐
+                    │      TestCase               │  pytest data-driven
+                    ├──────────────┬──────────────┤
                     │  TC_Selenium │TC_Playwright │  ← UI 测试
-                    │  Test_Demo               │  ← API 测试
-                    └─────┬──────┬─────────────┘
+                    │  Test_Demo                  │  ← API 测试
+                    └─────┬──────┬────────────────┘
                           │      │
             ┌─────────────┘      └─────────────┐
             ▼                                   ▼
-   ┌─────────────────┐              ┌──────────────────┐
-   │  pages/selenium │              │   pages/playwright│  Page Object 层
-   │  BasePage + POM │              │   BasePage + POM  │
-   └────────┬────────┘              └────────┬─────────┘
-            │                                │
-   ┌────────┴────────┐              ┌────────┴─────────┐
-   │ Selenium WebDriver│             │  Playwright Page │  驱动层
-   └─────────────────┘              └──────────────────┘
+   ┌─────────────────┐              ┌───────────────────┐
+   │  pages/selenium │              │  pages/playwright │  Page Object 层
+   │  BasePage + POM │              │  BasePage + POM   │
+   └────────┬────────┘              └──────────┬────────┘
+            │                                  │
+   ┌────────┴──────────┐              ┌────────┴─────────┐
+   │ Selenium WebDriver│              │  Playwright Page │  驱动层
+   └───────────────────┘              └──────────────────┘
 
    ┌──────────────────────────────────────────────────┐
    │          API 测试（四层架构）                       │
-   │  TestCase → Service → Atom → FuncHub              │
-   │  FuncHub: gRPC 反射调用 + HTTP requests            │
+   │  TestCase → Service → Atom → FuncHub             │
+   │  FuncHub: gRPC 反射调用 + HTTP requests           │
    └──────────────────────────────────────────────────┘
 ```
 

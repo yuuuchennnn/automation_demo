@@ -160,18 +160,18 @@ make test-playwright           # TestCase/TC_Playwright
 │                      TestCase                            │
 │   (pytest data-driven, parametrize + markers 隔离)        │
 ├──────────────┬──────────────────┬────────────────────────┤
-│  Test_Demo   │  TC_Selenium     │  TC_Playwright        │
-│  (API)       │  (UI - Selenium) │  (UI - Playwright)    │
+│  Test_Demo   │  TC_Selenium     │  TC_Playwright         │
+│  (API)       │  (UI - Selenium) │  (UI - Playwright)     │
 ├──────────────┴──────────────────┴────────────────────────┤
 │                                                          │
-│  API 路径                     UI 路径                      │
-│  TestCase                     TestCase                    │
-│    ↓                            ↓                         │
+│  API 路径                     UI 路径                     │
+│  TestCase                     TestCase                   │
+│    ↓                            ↓                        │
 │  Service (编排)               Page Object (pages/)        │
-│    ↓                            ↓                         │
+│    ↓                            ↓                        │
 │  Atom (单 API 封装)           WebDriver / Playwright      │
-│    ↓                                                      │
-│  FuncHub (引擎)                                          │
+│    ↓                                                     │
+│  FuncHub (引擎)                                           │
 │                                                          │
 └──────────────────────────────────────────────────────────┘
 ```
@@ -196,9 +196,9 @@ make test-playwright           # TestCase/TC_Playwright
 ┌──────────┐  1. ServerReflectionInfo    ┌──────────┐
 │  Python  │ ──────────────────────────▶ │  Go      │
 │  Client  │                             │  Server  │
-│          │  2. 动态获取 proto 定义      │          │
+│          │  2. 动态获取 proto 定义       │          │
 │          │ ◀────────────────────────── │          │
-│          │  3. 发起实际 RPC 调用       │          │
+│          │  3. 发起实际 RPC 调用         │          │
 │          │ ──────────────────────────▶ │          │
 └──────────┘                             └──────────┘
 ```
