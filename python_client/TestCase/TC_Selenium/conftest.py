@@ -2,9 +2,7 @@
 Selenium UI test fixtures.
 
 Provides session-scoped browser fixture with webdriver-manager
-to auto-resolve the matching ChromeDriver version.
-
-Pytest auto-discovers this conftest from TestCase/TC_Selenium/.
+for automatic ChromeDriver version resolution.
 """
 import pytest
 from selenium import webdriver
@@ -16,11 +14,11 @@ from loguru import logger
 @pytest.fixture(scope="session")
 def browser(env):
     """
-    Session-level Chrome browser instance.
+    Session-level Chrome browser instance (Selenium).
 
-    - Uses webdriver-manager to auto-install and match ChromeDriver.
-    - Runs in headless mode (CI-friendly).
-    - Session scope: all UI tests share one browser instance.
+    - webdriver-manager auto-installs matching ChromeDriver
+    - Headless mode for CI compatibility
+    - Session scope: one browser shared by all Selenium tests
     """
     base_url = env["SAUCEDEMO"]["base_url"]
 
@@ -30,17 +28,15 @@ def browser(env):
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--window-size=1920,1080")
 
-    logger.info("Starting Chrome browser (headless)...")
+    logger.info("Starting Chrome browser (Selenium, headless)...")
     service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=options)
     driver.implicitly_wait(5)
-
-    # Attach base_url for Page Objects
     driver.base_url = base_url
 
-    logger.info("Browser started. Base URL: {}", base_url)
+    logger.info("[Selenium] Browser ready — base URL: {}", base_url)
 
     yield driver
 
-    logger.info("Quitting browser...")
+    logger.info("[Selenium] Quitting browser...")
     driver.quit()

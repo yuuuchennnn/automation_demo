@@ -9,7 +9,7 @@ from selenium.webdriver.support import expected_conditions as EC
 
 
 class BasePage:
-    """Base class for all Page Objects."""
+    """Base class for all Selenium Page Objects."""
 
     DEFAULT_TIMEOUT = 10
 

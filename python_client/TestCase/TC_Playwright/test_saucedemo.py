@@ -1,5 +1,5 @@
 """
-SauceDemo E2E Test Cases — Selenium POM.
+SauceDemo E2E Test Cases — Playwright POM.
 
 Independent test methods for each scenario:
 - test_complete_checkout: happy path E2E flow
@@ -8,30 +8,30 @@ Independent test methods for each scenario:
 import pytest
 from loguru import logger
 
-from pages.selenium.login_page import LoginPage
-from pages.selenium.overview_page import CheckoutCompletePage
+from pages.playwright.login_page import LoginPage
+from pages.playwright.overview_page import CheckoutCompletePage
 from utils.data_reader import yamlDataProvider
 
 
-class TestSauceDemoSelenium:
+class TestSauceDemoPlaywright:
 
     # ------------------------------------------------------------------
     #  Happy Path: complete checkout flow
     # ------------------------------------------------------------------
-    @pytest.mark.ui_selenium
-    @pytest.mark.parametrize("testdata", yamlDataProvider("TestData/Selenium/checkout.yaml"))
-    def test_complete_checkout(self, browser, testdata):
+    @pytest.mark.ui_playwright
+    @pytest.mark.parametrize("testdata", yamlDataProvider("TestData/Playwright/checkout.yaml"))
+    def test_complete_checkout(self, page, testdata):
         """Complete E2E checkout: login → add items → cart → checkout → confirm."""
-        logger.info("=== [Selenium] test_complete_checkout ===")
+        logger.info("=== [Playwright] test_complete_checkout ===")
         td = testdata
         expected = td["expected_products"]
 
         # 1. Login
-        login_page = LoginPage(browser).open()
+        login_page = LoginPage(page).open()
         assert login_page.is_login_page()
         products_page = login_page.login(td["username"], td["password"])
 
-        # 2. Products page
+        # 2. Products page — Playwright auto-waits for elements
         assert products_page.is_loaded()
         assert products_page.get_title() == "Products"
         logger.info("[OK] Products page loaded")
@@ -64,28 +64,28 @@ class TestSauceDemoSelenium:
 
         # 7. Finish — verify completion
         overview_page.finish()
-        complete = CheckoutCompletePage(browser)
+        complete = CheckoutCompletePage(page)
         assert complete.get_complete_header() == td["expected_complete_header"]
         logger.info("[OK] Complete: {}", complete.get_complete_header())
-        logger.info("=== [Selenium] test_complete_checkout: PASSED ===")
+        logger.info("=== [Playwright] test_complete_checkout: PASSED ===")
 
     # ------------------------------------------------------------------
     #  Negative: locked out user login
     # ------------------------------------------------------------------
-    @pytest.mark.ui_selenium
-    @pytest.mark.parametrize("testdata", yamlDataProvider("TestData/Selenium/login_failure.yaml"))
-    def test_login_failure(self, browser, testdata):
+    @pytest.mark.ui_playwright
+    @pytest.mark.parametrize("testdata", yamlDataProvider("TestData/Playwright/login_failure.yaml"))
+    def test_login_failure(self, page, testdata):
         """Attempt login with locked_out_user and verify error message."""
-        logger.info("=== [Selenium] test_login_failure ===")
+        logger.info("=== [Playwright] test_login_failure ===")
         td = testdata
 
-        login_page = LoginPage(browser).open()
+        login_page = LoginPage(page).open()
         assert login_page.is_login_page()
 
         login_page.enter_username(td["username"])
         login_page.enter_password(td["password"])
-        login_page.click(*LoginPage.LOGIN_BUTTON)
+        login_page.click(LoginPage.LOGIN_BTN)
 
         assert login_page.get_error_message() == td["expected_error"]
         logger.info("[OK] Error message: {}", login_page.get_error_message())
-        logger.info("=== [Selenium] test_login_failure: PASSED ===")
+        logger.info("=== [Playwright] test_login_failure: PASSED ===")
