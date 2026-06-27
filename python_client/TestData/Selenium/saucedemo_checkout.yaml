@@ -1,0 +1,33 @@
+- testCase:
+    testId: tc-sauce-1
+    testName: saucedemo_complete_checkout_flow
+    testOwner: demo
+    testDescription: >
+      Complete E2E checkout flow: login → browse products →
+      add items to cart → checkout → fill shipping info →
+      review order → finish
+    isAutomated: Y
+  testData:
+    username: standard_user
+    password: secret_sauce
+    checkout_info:
+      first_name: "Test"
+      last_name: "User"
+      postal_code: "12345"
+    expected_products:
+      - "Sauce Labs Backpack"
+      - "Sauce Labs Bike Light"
+    expected_complete_header: "Thank you for your order!"
+    expected_complete_text: "Your order has been dispatched, and will arrive just as fast as the pony can get there!"
+
+- testCase:
+    testId: tc-sauce-2
+    testName: saucedemo_login_failure_locked_user
+    testOwner: demo
+    testDescription: >
+      Attempt login with locked_out_user and verify error message.
+    isAutomated: Y
+  testData:
+    username: locked_out_user
+    password: secret_sauce
+    expected_error: "Epic sadface: Sorry, this user has been locked out."
