@@ -1,9 +1,9 @@
 """
 SauceDemo E2E Test Cases — Selenium POM.
 
-Covers:
-- Complete checkout flow (happy path)
-- Login failure (locked user)
+Independent test methods for each scenario:
+- test_complete_checkout: happy path E2E flow
+- test_login_failure: locked out user error verification
 """
 import pytest
 from loguru import logger
@@ -15,20 +15,14 @@ from utils.data_reader import yamlDataProvider
 
 class TestSauceDemoSelenium:
 
+    # ------------------------------------------------------------------
+    #  Happy Path: complete checkout flow
+    # ------------------------------------------------------------------
     @pytest.mark.ui_selenium
-    @pytest.mark.parametrize("testdata", yamlDataProvider("TestData/Selenium/saucedemo_checkout.yaml"))
-    def test_saucedemo(self, browser, testdata):
-        """Dispatch to sub-tests based on testId."""
-        test_id = testdata.get("caseid", "")
-        if "tc-sauce-1" in test_id:
-            self._test_complete_checkout(browser, testdata)
-        elif "tc-sauce-2" in test_id:
-            self._test_login_failure(browser, testdata)
-        else:
-            pytest.skip(f"Unknown testId: {test_id}")
-
-    def _test_complete_checkout(self, browser, testdata):
-        logger.info("=== [Selenium] TC-SAUCE-1: Complete checkout ===")
+    @pytest.mark.parametrize("testdata", yamlDataProvider("TestData/Selenium/checkout.yaml"))
+    def test_complete_checkout(self, browser, testdata):
+        """Complete E2E checkout: login → add items → cart → checkout → confirm."""
+        logger.info("=== [Selenium] test_complete_checkout ===")
         td = testdata
         expected = td["expected_products"]
 
@@ -42,41 +36,47 @@ class TestSauceDemoSelenium:
         assert products_page.get_title() == "Products"
         logger.info("[OK] Products page loaded")
 
-        # 3. Add items
+        # 3. Add items to cart
         for name in expected:
             products_page.add_item_to_cart(name)
             logger.info("[OK] Added: {}", name)
         assert products_page.get_cart_count() == str(len(expected))
 
-        # 4. Cart
+        # 4. Cart page
         cart_page = products_page.go_to_cart()
         assert cart_page.get_item_count() == len(expected)
         for name in expected:
             assert name in cart_page.get_item_names()
         logger.info("[OK] Cart verified — {} items", cart_page.get_item_count())
 
-        # 5. Checkout
+        # 5. Checkout — fill shipping info
         checkout_page = cart_page.checkout()
         assert checkout_page.is_loaded()
         ci = td["checkout_info"]
         checkout_page.fill_checkout_info(ci["first_name"], ci["last_name"], ci["postal_code"])
 
-        # 6. Overview
+        # 6. Overview page
         overview_page = checkout_page.continue_checkout()
         assert overview_page.is_loaded()
         assert overview_page.get_item_count() == len(expected)
         assert overview_page.get_total()
         logger.info("[OK] Overview — total: {}", overview_page.get_total())
 
-        # 7. Finish
+        # 7. Finish — verify completion
         overview_page.finish()
         complete = CheckoutCompletePage(browser)
         assert complete.get_complete_header() == td["expected_complete_header"]
         logger.info("[OK] Complete: {}", complete.get_complete_header())
-        logger.info("=== [Selenium] TC-SAUCE-1: PASSED ===")
+        logger.info("=== [Selenium] test_complete_checkout: PASSED ===")
 
-    def _test_login_failure(self, browser, testdata):
-        logger.info("=== [Selenium] TC-SAUCE-2: Login failure ===")
+    # ------------------------------------------------------------------
+    #  Negative: locked out user login
+    # ------------------------------------------------------------------
+    @pytest.mark.ui_selenium
+    @pytest.mark.parametrize("testdata", yamlDataProvider("TestData/Selenium/login_failure.yaml"))
+    def test_login_failure(self, browser, testdata):
+        """Attempt login with locked_out_user and verify error message."""
+        logger.info("=== [Selenium] test_login_failure ===")
         td = testdata
 
         login_page = LoginPage(browser).open()
@@ -87,5 +87,5 @@ class TestSauceDemoSelenium:
         login_page.click(*LoginPage.LOGIN_BUTTON)
 
         assert login_page.get_error_message() == td["expected_error"]
-        logger.info("[OK] Error: {}", login_page.get_error_message())
-        logger.info("=== [Selenium] TC-SAUCE-2: PASSED ===")
+        logger.info("[OK] Error message: {}", login_page.get_error_message())
+        logger.info("=== [Selenium] test_login_failure: PASSED ===")

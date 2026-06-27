@@ -1,8 +1,9 @@
 """
 SauceDemo E2E Test Cases — Playwright POM.
 
-Covers the same scenarios as the Selenium version,
-demonstrating Playwright's sync API with auto-waiting.
+Independent test methods for each scenario:
+- test_complete_checkout: happy path E2E flow
+- test_login_failure: locked out user error verification
 """
 import pytest
 from loguru import logger
@@ -14,20 +15,14 @@ from utils.data_reader import yamlDataProvider
 
 class TestSauceDemoPlaywright:
 
+    # ------------------------------------------------------------------
+    #  Happy Path: complete checkout flow
+    # ------------------------------------------------------------------
     @pytest.mark.ui_playwright
-    @pytest.mark.parametrize("testdata", yamlDataProvider("TestData/Playwright/saucedemo_checkout.yaml"))
-    def test_saucedemo(self, page, testdata):
-        """Dispatch to sub-tests based on testId."""
-        test_id = testdata.get("caseid", "")
-        if "tc-pw-1" in test_id:
-            self._test_complete_checkout(page, testdata)
-        elif "tc-pw-2" in test_id:
-            self._test_login_failure(page, testdata)
-        else:
-            pytest.skip(f"Unknown testId: {test_id}")
-
-    def _test_complete_checkout(self, page, testdata):
-        logger.info("=== [Playwright] TC-PW-1: Complete checkout ===")
+    @pytest.mark.parametrize("testdata", yamlDataProvider("TestData/Playwright/checkout.yaml"))
+    def test_complete_checkout(self, page, testdata):
+        """Complete E2E checkout: login → add items → cart → checkout → confirm."""
+        logger.info("=== [Playwright] test_complete_checkout ===")
         td = testdata
         expected = td["expected_products"]
 
@@ -72,10 +67,16 @@ class TestSauceDemoPlaywright:
         complete = CheckoutCompletePage(page)
         assert complete.get_complete_header() == td["expected_complete_header"]
         logger.info("[OK] Complete: {}", complete.get_complete_header())
-        logger.info("=== [Playwright] TC-PW-1: PASSED ===")
+        logger.info("=== [Playwright] test_complete_checkout: PASSED ===")
 
-    def _test_login_failure(self, page, testdata):
-        logger.info("=== [Playwright] TC-PW-2: Login failure ===")
+    # ------------------------------------------------------------------
+    #  Negative: locked out user login
+    # ------------------------------------------------------------------
+    @pytest.mark.ui_playwright
+    @pytest.mark.parametrize("testdata", yamlDataProvider("TestData/Playwright/login_failure.yaml"))
+    def test_login_failure(self, page, testdata):
+        """Attempt login with locked_out_user and verify error message."""
+        logger.info("=== [Playwright] test_login_failure ===")
         td = testdata
 
         login_page = LoginPage(page).open()
@@ -86,5 +87,5 @@ class TestSauceDemoPlaywright:
         login_page.click(LoginPage.LOGIN_BTN)
 
         assert login_page.get_error_message() == td["expected_error"]
-        logger.info("[OK] Error: {}", login_page.get_error_message())
-        logger.info("=== [Playwright] TC-PW-2: PASSED ===")
+        logger.info("[OK] Error message: {}", login_page.get_error_message())
+        logger.info("=== [Playwright] test_login_failure: PASSED ===")
