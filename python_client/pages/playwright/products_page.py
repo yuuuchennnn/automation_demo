@@ -32,15 +32,23 @@ class ProductsPage(BasePage):
         return self.locator(self.PRODUCT_NAME).all_text_contents()
 
     def add_item_to_cart(self, product_name: str):
-        """Add a product to cart by display name."""
+        """Add a product to cart by display name. Uses data-test attribute."""
         slug = product_name.lower().replace(" ", "-")
-        self.click(f"#add-to-cart-{slug}")
+        self.click(f"[data-test='add-to-cart-{slug}']")
         return self
 
     def get_cart_count(self) -> str:
-        if self.locator(self.SHOPPING_CART_BADGE).count() > 0:
+        """
+        Get cart badge count. Waits briefly for the badge to appear
+        after an add-to-cart click (DOM update is async).
+        """
+        try:
+            self.locator(self.SHOPPING_CART_BADGE).wait_for(
+                state="attached", timeout=5000
+            )
             return self.get_text(self.SHOPPING_CART_BADGE)
-        return "0"
+        except Exception:
+            return "0"
 
     def go_to_cart(self):
         self.click(self.SHOPPING_CART_LINK)

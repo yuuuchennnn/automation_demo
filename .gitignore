@@ -10,3 +10,4 @@ grpc-server.pid
 allure-results/
 allure-report/
 .vscode/
+.claude/

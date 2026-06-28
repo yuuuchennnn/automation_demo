@@ -14,7 +14,6 @@ class ProductsPage(BasePage):
     PRODUCT_ITEMS = (By.CLASS_NAME, "inventory_item")
     PRODUCT_NAME = (By.CLASS_NAME, "inventory_item_name")
     PRODUCT_PRICE = (By.CLASS_NAME, "inventory_item_price")
-    ADD_TO_CART_PREFIX = "add-to-cart"
     SHOPPING_CART_LINK = (By.CLASS_NAME, "shopping_cart_link")
     SHOPPING_CART_BADGE = (By.CLASS_NAME, "shopping_cart_badge")
     SORT_DROPDOWN = (By.CLASS_NAME, "product_sort_container")
@@ -38,15 +37,18 @@ class ProductsPage(BasePage):
                 for item in self.find_all(*self.PRODUCT_ITEMS)]
 
     def add_item_to_cart(self, product_name: str):
+        """Add a product to cart by display name. Uses data-test attribute."""
         slug = product_name.lower().replace(" ", "-")
-        self.click(By.ID, f"{self.ADD_TO_CART_PREFIX}-{slug}")
+        self.click(By.CSS_SELECTOR, f"[data-test='add-to-cart-{slug}']")
         return self
 
     def get_cart_count(self) -> str:
-        try:
-            return self.get_text(*self.SHOPPING_CART_BADGE)
-        except Exception:
-            return "0"
+        """
+        Get cart badge count. Uses find_elements (instant, zero-wait)
+        because the badge element only exists when items are in the cart.
+        """
+        els = self.driver.find_elements(*self.SHOPPING_CART_BADGE)
+        return els[0].text if els else "0"
 
     def go_to_cart(self):
         self.click(*self.SHOPPING_CART_LINK)

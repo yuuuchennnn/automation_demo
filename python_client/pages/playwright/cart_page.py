@@ -19,6 +19,7 @@ class CartPage(BasePage):
         return self.locator(self.CHECKOUT_BTN).is_visible()
 
     def get_item_count(self) -> int:
+        # locator.count() is instant — page should be loaded by now via checkout() navigation
         return self.locator(self.CART_ITEMS).count()
 
     def get_item_names(self) -> list:
@@ -26,7 +27,7 @@ class CartPage(BasePage):
 
     def remove_item(self, product_name: str):
         slug = product_name.lower().replace(" ", "-")
-        self.click(f"#remove-{slug}")
+        self.click(f"[data-test='remove-{slug}']")
         return self
 
     def checkout(self):

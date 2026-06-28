@@ -12,7 +12,6 @@ class CartPage(BasePage):
 
     CART_ITEMS = (By.CLASS_NAME, "cart_item")
     CART_ITEM_NAME = (By.CLASS_NAME, "inventory_item_name")
-    REMOVE_PREFIX = "remove"
     CHECKOUT_BUTTON = (By.ID, "checkout")
 
     PATH = "/cart.html"
@@ -33,7 +32,7 @@ class CartPage(BasePage):
 
     def remove_item(self, product_name: str):
         slug = product_name.lower().replace(" ", "-")
-        self.click(By.ID, f"{self.REMOVE_PREFIX}-{slug}")
+        self.click(By.CSS_SELECTOR, f"[data-test='remove-{slug}']")
         return self
 
     def checkout(self):

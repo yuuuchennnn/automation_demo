@@ -22,8 +22,7 @@ class BasePage:
         return self.wait.until(EC.presence_of_element_located((by, value)))
 
     def find_all(self, by, value):
-        """Wait for at least one element and return all matching elements."""
-        self.wait.until(EC.presence_of_element_located((by, value)))
+        """Return all matching elements. Empty list if none — no timeout."""
         return self.driver.find_elements(by, value)
 
     def click(self, by, value):

@@ -30,15 +30,13 @@ class LoginPage(BasePage):
         self.fill(self.PASSWORD, password)
         return self
 
-    def click_login(self):
-        self.click(self.LOGIN_BTN)
-        from pages.playwright.products_page import ProductsPage
-        return ProductsPage(self.page)
-
     def login(self, username: str, password: str):
         self.enter_username(username)
         self.enter_password(password)
-        return self.click_login()
+        self.click(self.LOGIN_BTN)
+        self.wait_for_url("inventory")
+        from pages.playwright.products_page import ProductsPage
+        return ProductsPage(self.page)
 
     def get_error_message(self) -> str:
         return self.get_text(self.ERROR_MSG)

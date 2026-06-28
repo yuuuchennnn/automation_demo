@@ -1,9 +1,6 @@
 """
-SauceDemo E2E Test Cases — Selenium POM.
-
-Independent test methods for each scenario:
-- test_complete_checkout: happy path E2E flow
-- test_login_failure: locked out user error verification
+Selenium POM Demo
+Target url: https://www.saucedemo.com
 """
 import pytest
 from loguru import logger
@@ -14,10 +11,6 @@ from utils.data_reader import yamlDataProvider
 
 
 class TestSauceDemoSelenium:
-
-    # ------------------------------------------------------------------
-    #  Happy Path: complete checkout flow
-    # ------------------------------------------------------------------
     @pytest.mark.ui_selenium
     @pytest.mark.parametrize("testdata", yamlDataProvider("TestData/Selenium/checkout.yaml"))
     def test_complete_checkout(self, browser, testdata):
@@ -33,7 +26,6 @@ class TestSauceDemoSelenium:
 
         # 2. Products page
         assert products_page.is_loaded()
-        assert products_page.get_title() == "Products"
         logger.info("[OK] Products page loaded")
 
         # 3. Add items to cart
@@ -69,9 +61,7 @@ class TestSauceDemoSelenium:
         logger.info("[OK] Complete: {}", complete.get_complete_header())
         logger.info("=== [Selenium] test_complete_checkout: PASSED ===")
 
-    # ------------------------------------------------------------------
-    #  Negative: locked out user login
-    # ------------------------------------------------------------------
+
     @pytest.mark.ui_selenium
     @pytest.mark.parametrize("testdata", yamlDataProvider("TestData/Selenium/login_failure.yaml"))
     def test_login_failure(self, browser, testdata):

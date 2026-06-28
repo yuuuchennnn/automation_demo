@@ -31,10 +31,8 @@ class BasePage:
         return loc
 
     def find_all(self, selector: str):
-        """Return all matching elements as a Locator (count > 0 assertion)."""
-        loc = self.locator(selector)
-        loc.first.wait_for(state="visible", timeout=self.DEFAULT_TIMEOUT)
-        return loc
+        """Return all matching elements as a Locator. Empty if none — no timeout."""
+        return self.locator(selector)
 
     def click(self, selector: str):
         """Click an element (Playwright auto-waits for actionability)."""

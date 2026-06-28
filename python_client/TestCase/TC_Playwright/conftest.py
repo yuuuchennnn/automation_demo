@@ -35,7 +35,12 @@ def browser(playwright_instance, env):
 
     browser_instance = playwright_instance.chromium.launch(
         headless=True,
-        args=["--no-sandbox", "--disable-dev-shm-usage"],
+        args=[
+            "--no-sandbox",
+            "--disable-dev-shm-usage",
+            "--password-store=basic",
+            "--disable-features=PasswordManager",
+        ],
     )
     logger.info("[Playwright] Browser launched — base URL: {}", base_url)
     yield browser_instance

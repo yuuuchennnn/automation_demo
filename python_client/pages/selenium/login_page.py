@@ -30,15 +30,13 @@ class LoginPage(BasePage):
         self.fill(*self.PASSWORD_INPUT, password)
         return self
 
-    def click_login(self):
-        self.click(*self.LOGIN_BUTTON)
-        from pages.selenium.products_page import ProductsPage
-        return ProductsPage(self.driver)
-
     def login(self, username: str, password: str):
         self.enter_username(username)
         self.enter_password(password)
-        return self.click_login()
+        self.click(*self.LOGIN_BUTTON)
+        self.wait_for_url_contains("inventory")
+        from pages.selenium.products_page import ProductsPage
+        return ProductsPage(self.driver)
 
     def get_error_message(self) -> str:
         return self.get_text(*self.ERROR_MESSAGE)
